@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.devtoolKsp)
+    alias(libs.plugins.daggerHilt)
 }
 
 android {
@@ -19,8 +21,15 @@ android {
             useSupportLibrary = true
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
+
 
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://developers.paysera.com/tasks/api/\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -59,6 +68,16 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.retrofit.client)
+    implementation(libs.retrofit.gson)
+    implementation(libs.retrofit.okhttp.logging)
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.ksp.compiler)
+    implementation(libs.dagger.hilt.navigation)
+   // implementation(libs.androidx.navigation.compose)
+   // implementation(libs.androidx.lifecycle.viewmodel)
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
