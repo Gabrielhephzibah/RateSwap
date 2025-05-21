@@ -1,10 +1,15 @@
 package com.example.rateswap.di
 
+import android.content.Context
+import androidx.room.Room
 import com.example.rateswap.BuildConfig
+import com.example.rateswap.data.local.dao.AccountDao
+import com.example.rateswap.data.local.database.AccountDatabase
 import com.example.rateswap.data.remote.ExchangeApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -44,4 +49,19 @@ object AppModule {
     @Singleton
     @Provides
     fun provideBreedApi(retrofit: Retrofit): ExchangeApi = retrofit.create(ExchangeApi::class.java)
+
+    @Singleton
+    @Provides
+    fun provideRoomDatabase(@ApplicationContext context: Context) : AccountDatabase {
+        return Room.databaseBuilder(
+            context.applicationContext,
+            AccountDatabase::class.java,
+            "account-database"
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideAccountDao(database: AccountDatabase): AccountDao = database.accountDao()
+
 }

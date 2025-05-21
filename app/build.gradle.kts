@@ -74,8 +74,9 @@ dependencies {
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.ksp.compiler)
     implementation(libs.dagger.hilt.navigation)
-   // implementation(libs.androidx.navigation.compose)
-   // implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
 
     testImplementation(libs.junit)
