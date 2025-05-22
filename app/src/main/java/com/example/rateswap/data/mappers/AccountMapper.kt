@@ -1,20 +1,18 @@
 package com.example.rateswap.data.mappers
 
 import com.example.rateswap.data.local.entity.AccountEntity
-import com.example.rateswap.domain.model.Account
-import java.math.BigDecimal
-import java.math.RoundingMode
+import com.example.rateswap.domain.model.AccountBalance
 import java.util.Locale
 
-fun AccountEntity.toAccount(): Account{
-    return Account(
+fun AccountEntity.toAccount(): AccountBalance{
+    return AccountBalance(
         id = id,
         currency = currency,
         balance = balance
     )
 }
 
-fun Account.toAccountEntity(): AccountEntity{
+fun AccountBalance.toAccountEntity(): AccountEntity{
     return AccountEntity(
         id = id,
         currency = currency,
@@ -22,7 +20,7 @@ fun Account.toAccountEntity(): AccountEntity{
     )
 }
 
-fun List<AccountEntity>.toAccountList(): List<Account> {
+fun List<AccountEntity>.toAccountList(): List<AccountBalance> {
     return this.map { it.toAccount() }
 }
 

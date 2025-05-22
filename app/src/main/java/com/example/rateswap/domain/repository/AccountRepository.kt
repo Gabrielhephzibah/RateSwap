@@ -1,10 +1,9 @@
 package com.example.rateswap.domain.repository
 
-import com.example.rateswap.domain.model.Account
-import com.example.rateswap.utils.Resource
+import com.example.rateswap.domain.model.AccountBalance
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
-    fun getAccountBalance(): Flow<List<Account>>
+    fun getAccountBalance(): Flow<List<AccountBalance>>
     fun insertAccountBalance(balance: Double)
 }

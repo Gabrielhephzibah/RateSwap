@@ -5,12 +5,15 @@ import androidx.room.Room
 import com.example.rateswap.BuildConfig
 import com.example.rateswap.data.local.dao.AccountDao
 import com.example.rateswap.data.local.database.AccountDatabase
+import com.example.rateswap.data.local.database.PrePopulateAccountDatabase
 import com.example.rateswap.data.remote.ExchangeApi
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dagger.internal.Provider
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -18,9 +21,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-@InstallIn(SingletonComponent::class)
+
 @Module
+@InstallIn(SingletonComponent::class)
 object AppModule {
+
     @Singleton
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
@@ -52,15 +57,19 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideRoomDatabase(@ApplicationContext context: Context) : AccountDatabase {
+    fun provideRoomDatabase(
+        @ApplicationContext context: Context,
+        accountProvider : Lazy<AccountDao>
+    ) : AccountDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
             AccountDatabase::class.java,
             "account-database"
-        ).fallbackToDestructiveMigration().build()
+        ).addCallback(PrePopulateAccountDatabase(accountProvider))
+            .fallbackToDestructiveMigration().build()
     }
 
-    @Singleton
+
     @Provides
     fun provideAccountDao(database: AccountDatabase): AccountDao = database.accountDao()
 

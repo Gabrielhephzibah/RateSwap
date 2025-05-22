@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -32,16 +35,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.rateswap.domain.model.AccountBalance
 import com.example.rateswap.domain.model.ExchangeRate
 
 import com.example.rateswap.ui.theme.RateSwapTheme
@@ -60,24 +66,33 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val viewModel: MainScreenViewModel = hiltViewModel()
-                    //val state = viewModel.state
-                   // val sellingCurrency = viewModel.sellingCurrency
-                    //var amountToSell by remember { mutableStateOf("") }
-//
-//                   LaunchedEffect(key1 = amountToSell) {
-//                       viewModel.amountToSell(amountToSell)
-//                   }
+                    var amount by remember { mutableStateOf("") }
+                    LaunchedEffect(key1 = amount) {
+                        viewModel.amountToSell(amount)
+                    }
+
 
                     RateSwapScreen(
                         screenState = viewModel.state,
                         sellingCurrency = viewModel.sellingCurrency,
-                        updateSellingCurrency = {viewModel.updateSellingCurrency(it)},
-                        updateAmount = {  viewModel.amountToSell(it) },
+                        updateSellingCurrency = { viewModel.updateSellingCurrency(it) },
                         buyingCurrency = viewModel.buyingCurrency,
-                        updateBuyingCurrency = {viewModel.updateBuyingCurrency(it) }
+                        updateBuyingCurrency = { viewModel.updateBuyingCurrency(it) },
+                        accountBalances = viewModel.state.accountBalances,
+                        amountValidation = viewModel.validationError,
+                        amountToSell = amount,
+                        onAmountChange = {
+                            amount = it
+                            viewModel.clearValidationError()
+                        },
+                        onCurrencyChange = {
+                            amount = it
+                            viewModel.clearValidationError()
+                        },
+                        updateAmountToReceive = {
+                            viewModel.updateAmountToReceive()
+                        }
                     )
-
-
                 }
             }
         }
@@ -89,34 +104,45 @@ fun RateSwapScreen(
     screenState: MainScreenState,
     sellingCurrency: String,
     updateSellingCurrency: (String) ->Unit,
-    updateAmount: (String)->Unit,
     buyingCurrency: String,
-    updateBuyingCurrency: (String) -> Unit)
+    updateBuyingCurrency: (String) -> Unit,
+    accountBalances : List<AccountBalance>,
+    amountValidation : String,
+    amountToSell : String,
+    onAmountChange: (String) -> Unit,
+    onCurrencyChange : (String) -> Unit,
+    updateAmountToReceive: () -> Unit
+  )
 {
     var openDialog by remember { mutableStateOf(false) }
-    var amountToSell by remember { mutableStateOf("") }
     val amountToReceive by remember { mutableStateOf("0.00") }
-    //var currencyToSell by remember { mutableStateOf("EUR") }
-    //var currencyToReceive by remember { mutableStateOf("USD") }
+    var isError by rememberSaveable { mutableStateOf(false) }
     var dialogSource by remember { mutableStateOf<SelectionSource?>(null) }
-    LaunchedEffect(key1 = amountToSell) {
-        updateAmount(amountToSell)
-        //viewModel.amountToSell(amountToSell)
-    }
+
     Column(
-        modifier = Modifier.fillMaxSize().
-        padding(15.dp)) {
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp)) {
         Text(
             text = "My Balances",
             color = Color.Black
         )
-        Text(
-            text = "EUR 100.00",
-            modifier = Modifier.padding(16.dp),
-            color = Color.Black
-        )
+        LazyRow(
+            modifier = Modifier.padding(vertical = 20.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            items(accountBalances.size) {
+                val item = accountBalances[it]
+                AccountBalanceItem(
+                    amount = item.balance.toString(),
+                    currency = item.currency
+                )
+            }
+        }
         Card(
-            modifier = Modifier.padding()
+            modifier = Modifier
+                .padding()
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.large,
         ) {
@@ -135,14 +161,28 @@ fun RateSwapScreen(
                         modifier = Modifier.weight(1f),
                         value = amountToSell,
                         onValueChange = {
-                            amountToSell = it
+                            onAmountChange(it)
+                            //amountToSell = it
+                           // amountValidation = ""
+                           // isError = (amountValidation.isNotBlank() || amountValidation.isNotEmpty())
                         },
                         label = { Text("Enter amount to sell") },
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Gray,
                             unfocusedIndicatorColor = Color.Gray
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        supportingText = {
+                            if (amountValidation.isNotBlank()) {
+                                Text(
+                                    text = amountValidation,
+                                    color = Color.Red
+                                )
+                            }
+                        },
+                        isError = amountValidation.isNotBlank(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        //keyboardActions = KeyboardActions { isError = (amountValidation.isNotBlank() || amountValidation.isNotEmpty()) },
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -166,8 +206,11 @@ fun RateSwapScreen(
                 color = Color.Gray,
                 thickness = 1.dp
             )
-            Column(modifier = Modifier.padding(horizontal = 15.dp
-                , vertical = 15.dp).padding(bottom = 10.dp)) {
+            Column(modifier = Modifier
+                .padding(
+                    horizontal = 15.dp, vertical = 15.dp
+                )
+                .padding(bottom = 10.dp)) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     text = "Receive",
@@ -274,6 +317,8 @@ fun RateSwapScreen(
             onDismissRequest = { openDialog = false },
             rateList = screenState.exchangeRates,
             onSelectedCurrency = { currency ->
+                onCurrencyChange("")
+                updateAmountToReceive()
                 if (dialogSource == SelectionSource.SELL) {
                     updateSellingCurrency(currency)
                     //currencyToSell = currency
@@ -285,12 +330,42 @@ fun RateSwapScreen(
     }
 
 }
+
+@Composable
+fun AccountBalanceItem(
+    amount: String,
+    currency: String
+) {
+    Text(
+        modifier = Modifier.padding(end = 12.dp),
+        text = "$currency $amount",
+        color = Color.Black
+    )
+//    Text(
+//        text = "EUR",
+//        color = Color.Black
+//    )
+//    Row(
+//        verticalAlignment = Alignment.CenterVertically,
+//        modifier = Modifier.fillMaxWidth()
+//    ) {
+//        Text(
+//            text = "EUR",
+//            color = Color.Black
+//        )
+//        Text(
+//            text = "$currency $amount",
+//            color = Color.Black
+//        )
+//    }
+}
 @Composable
 fun RateDialog(onDismissRequest: () -> Unit, rateList: ExchangeRate, onSelectedCurrency: (String) -> Unit) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
             modifier = Modifier
-                .fillMaxWidth().height(400.dp),
+                .fillMaxWidth()
+                .height(400.dp),
             shape = RoundedCornerShape(16.dp),
         ) {
             Column(
@@ -359,7 +434,11 @@ fun GreetingPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            RateSwapScreen(screenState = MainScreenState(ExchangeRate(mapOf("USD" to 1.0, "GBP" to 0.85))), sellingCurrency = "EUR", updateSellingCurrency = {}, updateAmount = {}, buyingCurrency = "USD", updateBuyingCurrency = {})
+//            AccountBalanceItem(
+//                amount = "100.00",
+//                currency = "EUR"
+//            )
+            RateSwapScreen(screenState = MainScreenState(ExchangeRate(mapOf("USD" to 1.0, "GBP" to 0.85))), sellingCurrency = "EUR", updateSellingCurrency = {}, buyingCurrency = "USD", updateBuyingCurrency = {}, accountBalances = listOf(AccountBalance(1,"EUR", 100.0), AccountBalance(2,"USD", 50.0), AccountBalance(2,"USD", 50.00), AccountBalance(2,"USD", 80000.0), AccountBalance(2,"USD", 50.0)), amountValidation = "Amount is too lowjjjjj", amountToSell = "100.00", onAmountChange = {}, onCurrencyChange = {}, updateAmountToReceive = {})
         }
     }
 }

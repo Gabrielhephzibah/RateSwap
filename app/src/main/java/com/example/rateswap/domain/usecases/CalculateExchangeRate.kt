@@ -12,13 +12,13 @@ import javax.inject.Singleton
 class CalculateExchangeRate @Inject constructor(){
 
     operator fun invoke(
-        amount: String,
+        amount: String?,
         sellingCurrency: String,
         buyingCurrency: String,
         exchangeRate: ExchangeRate,
     ): Flow<Resource<Double>> =
         flow {
-            val amountToDouble = amount.toDoubleOrNull() ?: 0.0
+            val amountToDouble = amount?.toDoubleOrNull() ?: 0.0
             val fromRate = exchangeRate.rates[sellingCurrency] ?: 0.0
             val toRate = exchangeRate.rates[buyingCurrency] ?: 0.0
 
