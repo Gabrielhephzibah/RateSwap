@@ -8,7 +8,7 @@ fun AccountEntity.toAccount(): AccountBalance{
     return AccountBalance(
         id = id,
         currency = currency,
-        balance = balance
+        balance = balance.toTwoDecimal()
     )
 }
 
@@ -16,7 +16,7 @@ fun AccountBalance.toAccountEntity(): AccountEntity{
     return AccountEntity(
         id = id,
         currency = currency,
-        balance = balance
+        balance = balance.toTwoDecimal()
     )
 }
 

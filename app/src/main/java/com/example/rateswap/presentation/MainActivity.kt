@@ -91,6 +91,9 @@ class MainActivity : ComponentActivity() {
                         },
                         updateAmountToReceive = {
                             viewModel.updateAmountToReceive()
+                        },
+                        submitExchangeRequest = {
+                            viewModel.saveAccountBalance()
                         }
                     )
                 }
@@ -111,7 +114,8 @@ fun RateSwapScreen(
     amountToSell : String,
     onAmountChange: (String) -> Unit,
     onCurrencyChange : (String) -> Unit,
-    updateAmountToReceive: () -> Unit
+    updateAmountToReceive: () -> Unit,
+    submitExchangeRequest:() -> Unit
   )
 {
     var openDialog by remember { mutableStateOf(false) }
@@ -302,7 +306,11 @@ fun RateSwapScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp),
-            onClick = { /*TODO*/ },
+            onClick = {
+                if (amountToSell.isNotBlank()) {
+                    submitExchangeRequest()
+                }
+            },
         ) {
             Text(
                 text = "Swap",
@@ -438,7 +446,7 @@ fun GreetingPreview() {
 //                amount = "100.00",
 //                currency = "EUR"
 //            )
-            RateSwapScreen(screenState = MainScreenState(ExchangeRate(mapOf("USD" to 1.0, "GBP" to 0.85))), sellingCurrency = "EUR", updateSellingCurrency = {}, buyingCurrency = "USD", updateBuyingCurrency = {}, accountBalances = listOf(AccountBalance(1,"EUR", 100.0), AccountBalance(2,"USD", 50.0), AccountBalance(2,"USD", 50.00), AccountBalance(2,"USD", 80000.0), AccountBalance(2,"USD", 50.0)), amountValidation = "Amount is too lowjjjjj", amountToSell = "100.00", onAmountChange = {}, onCurrencyChange = {}, updateAmountToReceive = {})
+            RateSwapScreen(screenState = MainScreenState(ExchangeRate(mapOf("USD" to 1.0, "GBP" to 0.85))), sellingCurrency = "EUR", updateSellingCurrency = {}, buyingCurrency = "USD", updateBuyingCurrency = {}, accountBalances = listOf(AccountBalance(currency = "EUR", balance = 100.0), AccountBalance(currency = "USD", balance = 50.0), AccountBalance(currency = "USD", balance = 50.00), AccountBalance(currency = "USD", balance = 80000.0), AccountBalance(currency = "USD", balance = 50.0)), amountValidation = "Amount is too lowjjjjj", amountToSell = "100.00", onAmountChange = {}, onCurrencyChange = {}, updateAmountToReceive = {}, submitExchangeRequest = {})
         }
     }
 }

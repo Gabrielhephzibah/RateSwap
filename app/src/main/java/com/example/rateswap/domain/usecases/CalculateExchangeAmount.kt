@@ -9,7 +9,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CalculateExchangeRate @Inject constructor(){
+class CalculateExchangeAmount @Inject constructor(){
 
     operator fun invoke(
         amount: String?,

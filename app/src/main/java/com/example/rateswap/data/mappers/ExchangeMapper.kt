@@ -5,6 +5,8 @@ import com.example.rateswap.domain.model.ExchangeRate
 
 fun ExchangeDto.toExchangeRate(): ExchangeRate {
     return ExchangeRate(
-        rates = rates.mapValues { it.value.toTwoDecimal() }
+        rates.map { (key, value) ->
+            key.uppercase() to value.toTwoDecimal()
+        }.toMap()
     )
 }

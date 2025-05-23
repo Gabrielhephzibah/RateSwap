@@ -5,5 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
     fun getAccountBalance(): Flow<List<AccountBalance>>
-    fun insertAccountBalance(balance: Double)
+    suspend fun insertAccountBalance(accountBalance: AccountBalance)
+    suspend fun updateAccountBalance(accountBalance: AccountBalance)
 }

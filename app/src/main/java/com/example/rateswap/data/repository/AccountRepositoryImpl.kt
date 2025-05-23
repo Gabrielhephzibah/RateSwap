@@ -2,6 +2,7 @@ package com.example.rateswap.data.repository
 
 import com.example.rateswap.data.local.dao.AccountDao
 import com.example.rateswap.data.mappers.toAccount
+import com.example.rateswap.data.mappers.toAccountEntity
 import com.example.rateswap.domain.model.AccountBalance
 import com.example.rateswap.domain.repository.AccountRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,13 +18,20 @@ class AccountRepositoryImpl @Inject constructor(
     override fun getAccountBalance(): Flow<List<AccountBalance>> {
         return accountDao.getAllAccounts().map { account ->
             account.map {
-                println("ZIBAH Account Balance  REPO:: $it")
                 it.toAccount() }
         }
     }
 
-    override fun insertAccountBalance(balance: Double) {
-        TODO("Not yet implemented")
+    override suspend fun insertAccountBalance(accountBalance: AccountBalance) {
+        accountDao.insertAccount(accountBalance.toAccountEntity())
+    }
+
+//    override suspend fun upsertAccountBalance(accountBalance: AccountBalance) {
+//        accountDao.upsertAccount(accountBalance.toAccountEntity())
+//    }
+
+    override suspend fun updateAccountBalance(accountBalance: AccountBalance) {
+        accountDao.updateAccount(accountBalance.toAccountEntity())
     }
 
 
