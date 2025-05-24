@@ -7,4 +7,6 @@ interface AccountRepository {
     fun getAccountBalance(): Flow<List<AccountBalance>>
     suspend fun insertAccountBalance(accountBalance: AccountBalance)
     suspend fun updateAccountBalance(accountBalance: AccountBalance)
+    fun getTransactionCount(): Flow<Int>
+    suspend fun setTransactionCount(count: Int)
 }

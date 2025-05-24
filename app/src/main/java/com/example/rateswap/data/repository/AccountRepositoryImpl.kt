@@ -1,7 +1,8 @@
 package com.example.rateswap.data.repository
 
 import com.example.rateswap.data.local.dao.AccountDao
-import com.example.rateswap.data.mappers.toAccount
+import com.example.rateswap.data.local.datastore.TransactionDataStore
+import com.example.rateswap.data.mappers.toAccountBalance
 import com.example.rateswap.data.mappers.toAccountEntity
 import com.example.rateswap.domain.model.AccountBalance
 import com.example.rateswap.domain.repository.AccountRepository
@@ -12,13 +13,14 @@ import javax.inject.Singleton
 
 @Singleton
 class AccountRepositoryImpl @Inject constructor(
-    private val accountDao: AccountDao
+    private val accountDao: AccountDao,
+    private val transactionDataStore: TransactionDataStore
 ): AccountRepository {
 
     override fun getAccountBalance(): Flow<List<AccountBalance>> {
         return accountDao.getAllAccounts().map { account ->
             account.map {
-                it.toAccount() }
+                it.toAccountBalance() }
         }
     }
 
@@ -32,6 +34,14 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun updateAccountBalance(accountBalance: AccountBalance) {
         accountDao.updateAccount(accountBalance.toAccountEntity())
+    }
+
+    override fun getTransactionCount(): Flow<Int> {
+       return transactionDataStore.getTransactionCount()
+    }
+
+    override suspend fun setTransactionCount(count: Int) {
+        transactionDataStore.setTransactionCount(count)
     }
 
 

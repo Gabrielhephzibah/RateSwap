@@ -8,14 +8,13 @@ import com.example.rateswap.data.local.database.AccountDatabase
 import com.example.rateswap.data.local.database.PrePopulateAccountDatabase
 import com.example.rateswap.data.local.datastore.TransactionDataStoreImpl
 import com.example.rateswap.data.remote.ExchangeApi
-import com.example.rateswap.domain.datastore.TransactionDataStore
+import com.example.rateswap.data.local.datastore.TransactionDataStore
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dagger.internal.Provider
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

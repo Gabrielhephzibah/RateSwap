@@ -5,6 +5,7 @@ package com.example.rateswap.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -140,7 +142,7 @@ fun RateSwapScreen(
             .fillMaxSize()
             .padding(15.dp)) {
         Text(
-            text = "My Balances",
+            text = "Account Balances",
             color = Color.Black
         )
         LazyRow(
@@ -297,7 +299,7 @@ fun RateSwapScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Total Amount:",
+                text = "Amount to be deducted:",
                 color = Color.Black
             )
             Row {
@@ -345,14 +347,15 @@ fun RateSwapScreen(
                 }else{
                     updateBuyingCurrency(currency)
                 }
-            }
+            },
+            errorMessage = screenState.exchangeRateError
         )
     }
 
     if (openSubmitDialog) {
         SubmitDialog(
             onDismissRequest = { openSubmitDialog = false },
-            exchangeAlert = "You have successfully converted ${amountToSell.toDouble()} $sellingCurrency to ${screenState.amountToReceive} $buyingCurrency",
+            exchangeAlert = "You have successfully converted ${amountToSell.toDouble()} $sellingCurrency to ${screenState.amountToReceive} $buyingCurrency. Commission Fee: ${screenState.commissionFee} $sellingCurrency.",
             updateAmountToReceive = {
                 updateAmountToReceive()
             },
@@ -375,9 +378,47 @@ fun AccountBalanceItem(
         color = Color.Black
     )
 }
+
 @Composable
-fun RateDialog(onDismissRequest: () -> Unit, rateList: ExchangeRate, onSelectedCurrency: (String) -> Unit) {
+fun ErrorScreen(
+    onDismissRequest: () -> Unit,
+    errorMessage: String,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .wrapContentHeight()
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.White)
+
+    ) {
+        Text(
+            text = errorMessage,
+            color = Color.Black,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(16.dp)
+        )
+        Spacer(modifier = Modifier.height(15.dp))
+        TextButton(
+            onClick = {
+                onDismissRequest()
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text(
+                text = "OK",
+                fontSize = 16.sp
+            )
+        }
+    }
+
+}
+@Composable
+fun RateDialog(onDismissRequest: () -> Unit, rateList: ExchangeRate, onSelectedCurrency: (String) -> Unit, errorMessage:String) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
+        if (rateList.rates.isEmpty() && errorMessage.isNotBlank()) {
+            ErrorScreen(onDismissRequest = onDismissRequest, errorMessage = errorMessage)
+            return@Dialog
+        }
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -452,7 +493,7 @@ fun SubmitDialog(
         onDismissRequest = {},
     ) {
         Surface(
-            modifier = Modifier.wrapContentWidth().wrapContentHeight(),
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
             shape = MaterialTheme.shapes.large,
             tonalElevation = AlertDialogDefaults.TonalElevation
         ) {
@@ -494,6 +535,7 @@ fun GreetingPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
+           // ErrorScreen(onDismissRequest = {}, errorMessage = "")
             //SubmitDialog(onDismissRequest = {}) { }
 //            AccountBalanceItem(
 //                amount = "100.00",

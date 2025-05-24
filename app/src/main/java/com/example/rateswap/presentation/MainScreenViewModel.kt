@@ -3,10 +3,9 @@ package com.example.rateswap.presentation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.input.InputMode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.rateswap.domain.datastore.TransactionDataStore
+import com.example.rateswap.data.local.datastore.TransactionDataStore
 import com.example.rateswap.domain.model.ExchangeRate
 import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.domain.repository.ExchangeRepository
@@ -16,6 +15,7 @@ import com.example.rateswap.domain.usecases.CalculateExchangeAmount
 import com.example.rateswap.domain.usecases.CalculateSellingAccountBalance
 import com.example.rateswap.domain.usecases.ValidateExchangeAmount
 import com.example.rateswap.utils.Resource
+import com.example.rateswap.utils.toTwoDecimal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -38,7 +38,6 @@ class MainScreenViewModel @Inject constructor(
     private val validateExchangeAmount: ValidateExchangeAmount,
     private val calculateBuyingAccountBalance: CalculateBuyingAccountBalance,
     private val calculateSellingAccountBalance: CalculateSellingAccountBalance,
-    private val transactionDataStore: TransactionDataStore,
     private val commissionFee: CalculateCommissionFee
 ): ViewModel() {
 
@@ -111,7 +110,7 @@ class MainScreenViewModel @Inject constructor(
 
     private fun getTransactionCount() {
         viewModelScope.launch {
-            transactionDataStore.getTransactionCount().collectLatest{ count ->
+            accountRepository.getTransactionCount().collectLatest{ count ->
                 transactionCount.value = count
             }
         }
@@ -119,7 +118,7 @@ class MainScreenViewModel @Inject constructor(
 
     private fun incrementTransactionCount() {
         viewModelScope.launch {
-            transactionDataStore.setTransactionCount(transactionCount.value + 1)
+            accountRepository.setTransactionCount(transactionCount.value + 1)
         }
     }
 
@@ -167,8 +166,8 @@ class MainScreenViewModel @Inject constructor(
                             println("ZIBAH:: Success: ${it.data}")
                             state = state.copy(
                                 amountToReceive = it.data ?: 0.0,
-                                commissionFee = getCommissionFee(),
-                                totalAmountDeducted = getTotalAmountDeducted()
+                                commissionFee = getCommissionFee().toTwoDecimal(),
+                                totalAmountDeducted = getTotalAmountDeducted().toTwoDecimal()
                             )
                         }
                     }
@@ -181,7 +180,9 @@ class MainScreenViewModel @Inject constructor(
             exchangeRepository.getExchangeRates().collect { resource ->
                 when (resource) {
                     is Resource.Error -> {
-                        println("ZIBAH:: Error: ${resource.mError.stackTrace}")
+                        state = state.copy(
+                            exchangeRateError = resource.mError.message.toString(),
+                        )
                     }
 
                     is Resource.Success -> {

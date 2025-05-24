@@ -11,4 +11,5 @@ data class MainScreenState(
     val accountBalances: List<AccountBalance> = emptyList(),
     val commissionFee: Double = 0.0,
     val totalAmountDeducted : Double = 0.0,
+    val exchangeRateError : String = "",
  )

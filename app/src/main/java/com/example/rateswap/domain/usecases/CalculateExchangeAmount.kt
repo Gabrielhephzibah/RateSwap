@@ -1,8 +1,8 @@
 package com.example.rateswap.domain.usecases
 
-import com.example.rateswap.data.mappers.toTwoDecimal
 import com.example.rateswap.domain.model.ExchangeRate
 import com.example.rateswap.utils.Resource
+import com.example.rateswap.utils.toTwoDecimal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

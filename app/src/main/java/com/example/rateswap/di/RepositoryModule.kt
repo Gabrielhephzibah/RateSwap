@@ -4,6 +4,8 @@ import com.example.rateswap.data.repository.AccountRepositoryImpl
 import com.example.rateswap.data.repository.ExchangeRepositoryImpl
 import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.domain.repository.ExchangeRepository
+import com.example.rateswap.utils.connectivity.ConnectivityObserver
+import com.example.rateswap.utils.connectivity.ConnectivityObserverImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,4 +24,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun provideAccountRepository(accountRepository: AccountRepositoryImpl): AccountRepository
+
+    @Binds
+    @Singleton
+    abstract fun provideConnectivityObserver(connectivityObserver: ConnectivityObserverImpl): ConnectivityObserver
 }
