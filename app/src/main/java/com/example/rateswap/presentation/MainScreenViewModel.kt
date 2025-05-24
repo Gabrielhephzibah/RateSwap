@@ -6,10 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.InputMode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.rateswap.domain.datastore.TransactionDataStore
 import com.example.rateswap.domain.model.ExchangeRate
 import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.domain.repository.ExchangeRepository
 import com.example.rateswap.domain.usecases.CalculateBuyingAccountBalance
+import com.example.rateswap.domain.usecases.CalculateCommissionFee
 import com.example.rateswap.domain.usecases.CalculateExchangeAmount
 import com.example.rateswap.domain.usecases.CalculateSellingAccountBalance
 import com.example.rateswap.domain.usecases.ValidateExchangeAmount
@@ -18,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -34,13 +37,12 @@ class MainScreenViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val validateExchangeAmount: ValidateExchangeAmount,
     private val calculateBuyingAccountBalance: CalculateBuyingAccountBalance,
-    private val calculateSellingAccountBalance: CalculateSellingAccountBalance
+    private val calculateSellingAccountBalance: CalculateSellingAccountBalance,
+    private val transactionDataStore: TransactionDataStore,
+    private val commissionFee: CalculateCommissionFee
 ): ViewModel() {
 
     var state by mutableStateOf(MainScreenState())
-        private set
-
-    var inputAmount by mutableStateOf("")
         private set
 
     private val sellingAmount = MutableStateFlow("")
@@ -52,6 +54,9 @@ class MainScreenViewModel @Inject constructor(
         private set
 
     var validationError by mutableStateOf("")
+        private set
+
+    var transactionCount = MutableStateFlow(0)
         private set
 
     fun amountToSell(amount: String) {
@@ -82,6 +87,7 @@ class MainScreenViewModel @Inject constructor(
         getAccountBalance()
         getExchangeRate()
         calculateExchangeRate()
+        getTransactionCount()
     }
 
     private fun getAccountBalance() {
@@ -103,6 +109,30 @@ class MainScreenViewModel @Inject constructor(
         }
     }
 
+    private fun getTransactionCount() {
+        viewModelScope.launch {
+            transactionDataStore.getTransactionCount().collectLatest{ count ->
+                transactionCount.value = count
+            }
+        }
+    }
+
+    private fun incrementTransactionCount() {
+        viewModelScope.launch {
+            transactionDataStore.setTransactionCount(transactionCount.value + 1)
+        }
+    }
+
+    private fun getCommissionFee(): Double {
+        return commissionFee(
+            amount = sellingAmount.value.toDoubleOrNull() ?: 0.0,
+            transactionCount = transactionCount.value
+        )
+    }
+    private fun getTotalAmountDeducted(): Double {
+        return (sellingAmount.value.toDoubleOrNull() ?: 0.0) + getCommissionFee()
+    }
+
     private fun calculateExchangeRate() {
         viewModelScope.launch {
             sellingAmount.debounce(300)
@@ -112,7 +142,8 @@ class MainScreenViewModel @Inject constructor(
                         amount = amount,
                         sellingCurrency = sellingCurrency,
                         buyingCurrency = buyingCurrency,
-                        accountBalance = state.accountBalances
+                        accountBalance = state.accountBalances,
+                        transactionCount = transactionCount.value
                     )
                 }
                 .flatMapLatest { validatedAmount ->
@@ -135,7 +166,9 @@ class MainScreenViewModel @Inject constructor(
                         is Resource.Success -> {
                             println("ZIBAH:: Success: ${it.data}")
                             state = state.copy(
-                                amountToReceive = it.data ?: 0.0
+                                amountToReceive = it.data ?: 0.0,
+                                commissionFee = getCommissionFee(),
+                                totalAmountDeducted = getTotalAmountDeducted()
                             )
                         }
                     }
@@ -168,7 +201,8 @@ class MainScreenViewModel @Inject constructor(
                 amount = sellingAmount.value,
                 sellingCurrency = sellingCurrency,
                 buyingCurrency = buyingCurrency,
-                accountBalance = state.accountBalances
+                accountBalance = state.accountBalances,
+                transactionCount = transactionCount.value
             ).transformLatest { validation ->
                 if (validation is Resource.Error) {
                     emit(validation)
@@ -189,19 +223,22 @@ class MainScreenViewModel @Inject constructor(
                     val sellingAccount = calculateSellingAccountBalance(
                         sellingCurrency = sellingCurrency,
                         amountToSell = sellingAmount.value,
-                        accountBalance = state.accountBalances
+                        accountBalance = state.accountBalances,
+                        transactionCount = transactionCount.value
                     )
                     emit(sellingAccount)
                 }
 
             }.collect { resource ->
                 when (resource) {
+
                     is Resource.Error -> {
                         validationError = resource.mError.message.toString()
+                        println("ZIBAH:: ERROR: ${resource.mError.message.toString()}")
                     }
 
                     is Resource.Success -> {
-
+                        incrementTransactionCount()
                         println("ZIBAH:: Success: Account Added Successfully")
                     }
                 }

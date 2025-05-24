@@ -6,7 +6,9 @@ import com.example.rateswap.BuildConfig
 import com.example.rateswap.data.local.dao.AccountDao
 import com.example.rateswap.data.local.database.AccountDatabase
 import com.example.rateswap.data.local.database.PrePopulateAccountDatabase
+import com.example.rateswap.data.local.datastore.TransactionDataStoreImpl
 import com.example.rateswap.data.remote.ExchangeApi
+import com.example.rateswap.domain.datastore.TransactionDataStore
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -69,8 +71,15 @@ object AppModule {
             .fallbackToDestructiveMigration().build()
     }
 
-
     @Provides
     fun provideAccountDao(database: AccountDatabase): AccountDao = database.accountDao()
+
+    @Provides
+    @Singleton
+    fun provideTransactionDataStore(
+        @ApplicationContext context: Context
+    ): TransactionDataStore {
+        return TransactionDataStoreImpl(context)
+    }
 
 }

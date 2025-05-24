@@ -7,17 +7,19 @@ import javax.inject.Inject
 
 class CalculateSellingAccountBalance @Inject constructor(
     private val accountRepository: AccountRepository,
+    private val commissionFee: CalculateCommissionFee
 ) {
     suspend  operator fun invoke(
         sellingCurrency: String,
         amountToSell : String,
-        accountBalance: List<AccountBalance>
+        accountBalance: List<AccountBalance>,
+        transactionCount : Int
     ): Resource<Unit> {
         val amountToDouble = amountToSell.toDoubleOrNull() ?: 0.0
         val existingAccount = accountBalance.find { it.currency == sellingCurrency }
 
         existingAccount?.let { account ->
-            val totalAmount = account.balance - amountToDouble
+            val totalAmount = account.balance - (amountToDouble + commissionFee(amountToDouble, transactionCount))
             val updateAccount = existingAccount.copy(balance = totalAmount)
             println("ZIBAH:: AccountExist :: $updateAccount")
             accountRepository.updateAccountBalance(updateAccount)

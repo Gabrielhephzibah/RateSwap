@@ -9,14 +9,15 @@ import javax.inject.Singleton
 
 @Singleton
 class ValidateExchangeAmount @Inject constructor(
-
+    private val commissionFee: CalculateCommissionFee
 ) {
 
     operator fun invoke(
         amount: String,
         sellingCurrency: String,
         buyingCurrency: String,
-        accountBalance: List<AccountBalance>
+        accountBalance: List<AccountBalance>,
+        transactionCount :Int
     ): Flow<Resource<String>> =
         flow {
             val sellingCurrencyBalance = accountBalance.find { it.currency == sellingCurrency }
@@ -31,7 +32,7 @@ class ValidateExchangeAmount @Inject constructor(
                     emit(Resource.Error(Throwable("Enter an amount greater than 0")))
                 }
 
-                sellingCurrencyBalance.balance < amountToDouble -> {
+                sellingCurrencyBalance.balance < (amountToDouble + commissionFee(amountToDouble, transactionCount)) -> {
                     emit(Resource.Error(Throwable("You do not have enough balance to exchange this amount")))
                 }
 

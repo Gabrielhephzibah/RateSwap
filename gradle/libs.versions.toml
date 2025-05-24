@@ -14,6 +14,7 @@ daggerHilt = "2.51.1"
 okhttpLogging = "4.9.1"
 hiltNavigation = "1.2.0"
 room = "2.6.1"
+preferenceDatastore = "1.1.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,7 @@ dagger-hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-comp
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room"}
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room"}
 androidx-room-compiler = {group = "androidx.room", name = "room-compiler", version.ref = "room"}
+androidx-preference-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "preferenceDatastore"}
 
 
 [plugins]
