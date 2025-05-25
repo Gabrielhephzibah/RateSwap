@@ -5,6 +5,12 @@ import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.utils.Resource
 import javax.inject.Inject
 
+/**
+ * Use case to calculate and update the selling account balance after a transaction.
+ *
+ * @property accountRepository The repository to manage account balances.
+ * @property commissionFee The use case to calculate the commission fee based on the transaction count.
+ */
 class CalculateSellingAccountBalance @Inject constructor(
     private val accountRepository: AccountRepository,
     private val commissionFee: CalculateCommissionFee

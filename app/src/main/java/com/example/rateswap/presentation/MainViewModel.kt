@@ -41,7 +41,7 @@ class MainViewModel @Inject constructor(
     private val calculateBuyingAccountBalance: CalculateBuyingAccountBalance,
     private val calculateSellingAccountBalance: CalculateSellingAccountBalance,
     private val commissionFee: CalculateCommissionFee
-): ViewModel() {
+) : ViewModel() {
 
     var state by mutableStateOf(MainScreenState())
         private set
@@ -164,7 +164,7 @@ class MainViewModel @Inject constructor(
 
     private fun getTransactionCount() {
         viewModelScope.launch {
-            transactionRepository.getTransactionCount().collectLatest{ count ->
+            transactionRepository.getTransactionCount().collectLatest { count ->
                 transactionCount = count
             }
         }
@@ -182,6 +182,7 @@ class MainViewModel @Inject constructor(
             transactionCount = transactionCount
         )
     }
+
     private fun getTotalAmountDeducted(): Double {
         return (sellingAmount.value.toDoubleOrNull() ?: 0.0) + getCommissionFee()
     }
@@ -199,23 +200,27 @@ class MainViewModel @Inject constructor(
                     emit(validationResult)
                     return@transformLatest
                 } else {
-                    emit(calculateBuyingAccountBalance(
-                        buyingCurrency = buyingCurrency,
-                        buyingAmount = state.buyingAmount,
-                        accountBalances = state.accountBalances
-                    ))
+                    emit(
+                        calculateBuyingAccountBalance(
+                            buyingCurrency = buyingCurrency,
+                            buyingAmount = state.buyingAmount,
+                            accountBalances = state.accountBalances
+                        )
+                    )
                 }
             }.transformLatest { buyingAccount ->
                 if (buyingAccount is Resource.Error) {
                     emit(buyingAccount)
                     return@transformLatest
                 } else {
-                    emit(calculateSellingAccountBalance(
-                        sellingCurrency = sellingCurrency,
-                        sellingAmount = sellingAmount.value,
-                        accountBalances = state.accountBalances,
-                        transactionCount = transactionCount
-                    ))
+                    emit(
+                        calculateSellingAccountBalance(
+                            sellingCurrency = sellingCurrency,
+                            sellingAmount = sellingAmount.value,
+                            accountBalances = state.accountBalances,
+                            transactionCount = transactionCount
+                        )
+                    )
                 }
 
             }.collect { resource ->

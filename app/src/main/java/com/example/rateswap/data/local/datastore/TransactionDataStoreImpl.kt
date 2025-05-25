@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** * Implementation of TransactionDataStore that uses DataStore to persist transaction count.
+ * * @param context Application context to access DataStore.
+ */
+
 @Singleton
  class TransactionDataStoreImpl @Inject constructor(
     private val context: Context

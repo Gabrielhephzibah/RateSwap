@@ -6,6 +6,9 @@ import com.example.rateswap.utils.Resource
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** * Use case to calculate and update the buying account balance.
+ *@property accountRepository The repository to manage account balances.
+ */
 @Singleton
 class CalculateBuyingAccountBalance @Inject constructor(
     private val accountRepository: AccountRepository,

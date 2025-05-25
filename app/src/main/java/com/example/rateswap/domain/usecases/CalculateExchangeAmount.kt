@@ -8,6 +8,14 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** * Use case to calculate the exchange amount based on the provided amount,
+ *
+ * @property amount The amount to be exchanged.
+ * @property sellingCurrency The currency being sold.
+ * @property buyingCurrency The currency being bought.
+ * @property exchangeRate The current exchange rates for various currencies.
+ * @return A flow emitting the calculated exchange amount as a Resource.
+ */
 @Singleton
 class CalculateExchangeAmount @Inject constructor(){
 

@@ -7,6 +7,7 @@ import com.example.rateswap.domain.repository.ExchangeRepository
 import com.example.rateswap.utils.ErrorMessage
 import com.example.rateswap.utils.Resource
 import com.example.rateswap.utils.connectivity.ConnectivityObserver
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -21,7 +22,8 @@ import javax.inject.Singleton
 @Singleton
 class ExchangeRepositoryImpl @Inject constructor(
     private val exchangeApi: ExchangeApi,
-    private val connectivityObserver: ConnectivityObserver
+    private val connectivityObserver: ConnectivityObserver,
+    private val ioDispatcher: CoroutineDispatcher
 ): ExchangeRepository {
     override fun getExchangeRates(): Flow<Resource<ExchangeRate>> =
         flow {
@@ -37,7 +39,8 @@ class ExchangeRepositoryImpl @Inject constructor(
                 delay(5000)
 
             }
-        }.flowOn(Dispatchers.IO).catch {
+        }.flowOn(ioDispatcher)
+            .catch {
             emit(Resource.Error(ErrorMessage.API_ERROR))
         }
 }

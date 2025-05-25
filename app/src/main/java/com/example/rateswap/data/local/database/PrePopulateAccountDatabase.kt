@@ -13,6 +13,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+/**
+ * A Room database callback class that pre-populates the account database with an initial balance
+ * when the database is created for the first time.
+ *
+ * This callback inserts a default account with a currency of "EUR" and a balance of 1000.00.
+ *
+ * @param accountDao A lazy provider for the [AccountDao] to perform database operations.
+ */
 class PrePopulateAccountDatabase(
     private val accountDao: Lazy<AccountDao>
 ): RoomDatabase.Callback()  {

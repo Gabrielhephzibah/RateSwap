@@ -8,6 +8,11 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Use case to validate the exchange amount before proceeding with the transaction.
+ *
+ * @property commissionFee The use case to calculate the commission fee based on the transaction count.
+ */
 @Singleton
 class ValidateExchangeAmount @Inject constructor(
     private val commissionFee: CalculateCommissionFee
