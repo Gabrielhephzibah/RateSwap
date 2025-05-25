@@ -5,7 +5,7 @@ package com.example.rateswap.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,31 +13,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -45,26 +34,26 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.rateswap.R
 import com.example.rateswap.domain.model.AccountBalance
 import com.example.rateswap.domain.model.ExchangeRate
 
+import com.example.rateswap.presentation.dialog.ExchangeMessageDialog
+import com.example.rateswap.presentation.dialog.ExchangeRateDialog
+
 import com.example.rateswap.ui.theme.RateSwapTheme
-import com.example.rateswap.utils.SelectionSource
+import com.example.rateswap.utils.RateDialogSource
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -78,35 +67,33 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel: MainScreenViewModel = hiltViewModel()
+                    val viewModel: MainViewModel = hiltViewModel()
                     var amount by remember { mutableStateOf("") }
                     LaunchedEffect(key1 = amount) {
-                        viewModel.amountToSell(amount)
+                        viewModel.updateAmount(amount)
                     }
-
-
-                    RateSwapScreen(
-                        screenState = viewModel.state,
+                    ExchangeScreen(
+                        uiState = viewModel.state,
                         sellingCurrency = viewModel.sellingCurrency,
                         updateSellingCurrency = { viewModel.updateSellingCurrency(it) },
                         buyingCurrency = viewModel.buyingCurrency,
                         updateBuyingCurrency = { viewModel.updateBuyingCurrency(it) },
                         accountBalances = viewModel.state.accountBalances,
-                        amountValidation = viewModel.validationError,
-                        amountToSell = amount,
+                        amountValidation = viewModel.state.validationError,
+                        amount = amount,
                         onAmountChange = {
                             amount = it
                             viewModel.clearValidationError()
                         },
-                        onCurrencyChange = {
+                        updateSellingAmount = {
                             amount = it
                             viewModel.clearValidationError()
                         },
-                        updateAmountToReceive = {
-                            viewModel.updateAmountToReceive()
+                        updateBuyingAmount = {
+                            viewModel.updateBuyingAmount()
                         },
-                        submitExchangeRequest = {
-                            viewModel.saveAccountBalance()
+                        submitExchange = {
+                            viewModel.submitExchange()
                         }
                     )
                 }
@@ -116,38 +103,39 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun RateSwapScreen(
-    screenState: MainScreenState,
+fun ExchangeScreen(
+    uiState: MainScreenState,
     sellingCurrency: String,
-    updateSellingCurrency: (String) ->Unit,
+    updateSellingCurrency: (String) -> Unit,
     buyingCurrency: String,
     updateBuyingCurrency: (String) -> Unit,
-    accountBalances : List<AccountBalance>,
-    amountValidation : String,
-    amountToSell : String,
+    accountBalances: List<AccountBalance>,
+    amountValidation: String,
+    amount: String,
     onAmountChange: (String) -> Unit,
-    onCurrencyChange : (String) -> Unit,
-    updateAmountToReceive: () -> Unit,
-    submitExchangeRequest:() -> Unit
-  )
-{
-    var openDialog by remember { mutableStateOf(false) }
+    updateSellingAmount: (String) -> Unit,
+    updateBuyingAmount: () -> Unit,
+    submitExchange: () -> Unit
+) {
+    var openRateDialog by remember { mutableStateOf(false) }
     var openSubmitDialog by remember { mutableStateOf(false) }
-    //val amountToReceive by remember { mutableStateOf("0.00") }
-    var isError by rememberSaveable { mutableStateOf(false) }
-    var dialogSource by remember { mutableStateOf<SelectionSource?>(null) }
-
+    var dialogSource by remember { mutableStateOf<RateDialogSource?>(null) }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(15.dp)) {
+            .padding(15.dp)
+    ) {
+        Spacer(modifier = Modifier.padding(10.dp))
         Text(
-            text = "Account Balances",
-            color = Color.Black
+            text = stringResource(R.string.account_balances),
+            color = Color.Black,
+            fontSize = 16.sp,
+            fontWeight = FontWeight(300),
         )
+        Spacer(modifier = Modifier.padding(5.dp))
         LazyRow(
-            modifier = Modifier.padding(vertical = 20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.padding(bottom = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             items(accountBalances.size) {
@@ -158,36 +146,52 @@ fun RateSwapScreen(
                 )
             }
         }
+        Spacer(modifier = Modifier.padding(10.dp))
         Card(
             modifier = Modifier
                 .padding()
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White,
+
+                ),
+            border = BorderStroke(1.dp, Color.Black)
         ) {
             Column(modifier = Modifier.padding(horizontal = 15.dp, vertical = 15.dp)) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = "Sell",
-                    color = Color.Black
+                    text = stringResource(R.string.sell),
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight(600),
                 )
-                Spacer(modifier = Modifier.padding(10.dp))
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextField(
                         modifier = Modifier.weight(1f),
-                        value = amountToSell,
+                        value = amount,
                         onValueChange = {
                             onAmountChange(it)
-                            //amountToSell = it
-                           // amountValidation = ""
-                           // isError = (amountValidation.isNotBlank() || amountValidation.isNotEmpty())
                         },
-                        label = { Text("Enter amount to sell") },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.enter_amount),
+                                fontSize = 15.sp
+                            )
+                        },
                         colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Gray,
-                            unfocusedIndicatorColor = Color.Gray
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            errorIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            errorContainerColor = Color.Transparent,
+                            cursorColor = Color.Black,
+                            focusedLabelColor = Color.Black,
+                            unfocusedLabelColor = Color.Black,
                         ),
                         singleLine = true,
                         supportingText = {
@@ -200,39 +204,43 @@ fun RateSwapScreen(
                         },
                         isError = amountValidation.isNotBlank(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        //keyboardActions = KeyboardActions { isError = (amountValidation.isNotBlank() || amountValidation.isNotEmpty()) },
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable {
-                            openDialog = true
-                            dialogSource = SelectionSource.SELL
+                            openRateDialog = true
+                            dialogSource = RateDialogSource.SELL
                         }
                     ) {
                         Text(
                             text = sellingCurrency,
-                            color = Color.Black
+                            color = Color.Black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight(550)
                         )
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
+                            tint = Color.Black,
                         )
                     }
                 }
             }
             HorizontalDivider(
-                color = Color.Gray,
+                color = Color.Black,
                 thickness = 1.dp
             )
-            Column(modifier = Modifier
-                .padding(
-                    horizontal = 15.dp, vertical = 15.dp
-                )
-                .padding(bottom = 10.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 15.dp, vertical = 15.dp)
+                    .padding(bottom = 10.dp)
+            ) {
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = "Receive",
-                    color = Color.Black
+                    text = stringResource(R.string.receive),
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight(600)
                 )
                 Spacer(modifier = Modifier.padding(10.dp))
                 Row(
@@ -241,76 +249,93 @@ fun RateSwapScreen(
                 ) {
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = screenState.amountToReceive.toString(),
+                        text = uiState.buyingAmount.toString(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.clickable {
-                            openDialog = true
-                            dialogSource = SelectionSource.RECEIVE
+                            openRateDialog = true
+                            dialogSource = RateDialogSource.RECEIVE
                         }
                     ) {
                         Text(
                             text = buyingCurrency,
-                            color = Color.Black
+                            color = Color.Black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight(550)
                         )
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
+                            tint = Color.Black,
                         )
                     }
                 }
             }
         }
-        Spacer(modifier = Modifier.padding(10.dp))
+        Spacer(modifier = Modifier.padding(20.dp))
         Row(
             Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(bottom = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Commission Fee:",
-                color = Color.Black
+                text = stringResource(R.string.commission_fee),
+                color = Color.Black,
+                fontSize = 15.sp,
+                fontWeight = FontWeight(500)
             )
             Row {
                 Text(
-                    text = sellingCurrency ,
-                    color = Color.Black
+                    text = sellingCurrency,
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight(550)
                 )
                 Spacer(modifier = Modifier.padding(2.dp))
                 Text(
-                    text = screenState.commissionFee.toString(),
-                    color = Color.Black
+                    text = uiState.commissionFee.toString(),
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight(550)
                 )
             }
-
         }
         HorizontalDivider(
             color = Color.Gray,
             thickness = 1.dp
         )
-        Spacer(modifier = Modifier.padding(5.dp))
         Row(
             Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(top = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Amount to be deducted:",
-                color = Color.Black
+                text = stringResource(R.string.amount_to_be_deducted),
+                color = Color.Black,
+                fontSize = 15.sp,
+                fontWeight = FontWeight(500)
             )
             Row {
                 Text(
                     text = sellingCurrency,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight(550)
                 )
                 Spacer(modifier = Modifier.padding(2.dp))
                 Text(
-                    text = screenState.totalAmountDeducted.toString(),
-                    color = Color.Black
+                    text = uiState.totalAmountDeducted.toString(),
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight(550)
                 )
             }
 
@@ -321,50 +346,57 @@ fun RateSwapScreen(
                 .fillMaxWidth()
                 .padding(top = 20.dp),
             onClick = {
-                if (amountToSell.isNotBlank() && amountValidation.isBlank()) {
-                    submitExchangeRequest()
+                if (amount.isNotBlank() && amountValidation.isBlank()) {
+                    submitExchange()
                     openSubmitDialog = true
                 }
             },
         ) {
             Text(
-                text = "Submit",
+                text = stringResource(R.string.submit),
                 color = Color.White,
                 fontSize = 20.sp
             )
         }
 
     }
-    if (openDialog && dialogSource != null) {
-        RateDialog(
-            onDismissRequest = { openDialog = false },
-            rateList = screenState.exchangeRates,
+    if (openRateDialog && dialogSource != null) {
+        ExchangeRateDialog(
+            onDismissRequest = { openRateDialog = false },
+            rateResponse = uiState.exchangeRates,
             onSelectedCurrency = { currency ->
-                onCurrencyChange("")
-                updateAmountToReceive()
-                if (dialogSource == SelectionSource.SELL) {
+                if (dialogSource == RateDialogSource.SELL) {
                     updateSellingCurrency(currency)
-                }else{
+                } else {
                     updateBuyingCurrency(currency)
                 }
+                updateSellingAmount("")
+                updateBuyingAmount()
             },
-            errorMessage = screenState.exchangeRateError
+            errorMessage = uiState.exchangeRateError
         )
     }
 
     if (openSubmitDialog) {
-        SubmitDialog(
+        ExchangeMessageDialog(
             onDismissRequest = { openSubmitDialog = false },
-            exchangeAlert = "You have successfully converted ${amountToSell.toDouble()} $sellingCurrency to ${screenState.amountToReceive} $buyingCurrency. Commission Fee: ${screenState.commissionFee} $sellingCurrency.",
+            exchangeAlert = stringResource(
+                R.string.exchange_message,
+                amount.toDouble(),
+                sellingCurrency,
+                uiState.buyingAmount,
+                buyingCurrency,
+                uiState.commissionFee,
+                sellingCurrency
+            ),
             updateAmountToReceive = {
-                updateAmountToReceive()
+                updateBuyingAmount()
             },
             onCurrencyChange = {
-                onCurrencyChange(it)
+                updateSellingAmount(it)
             }
         )
     }
-
 }
 
 @Composable
@@ -375,156 +407,14 @@ fun AccountBalanceItem(
     Text(
         modifier = Modifier.padding(end = 12.dp),
         text = "$currency $amount",
-        color = Color.Black
+        color = Color.Black,
+        fontSize = 16.sp,
+        fontWeight = FontWeight(600),
     )
 }
 
-@Composable
-fun ErrorScreen(
-    onDismissRequest: () -> Unit,
-    errorMessage: String,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-            .wrapContentHeight()
-            .clip(RoundedCornerShape(15.dp))
-            .background(Color.White)
 
-    ) {
-        Text(
-            text = errorMessage,
-            color = Color.Black,
-            fontSize = 16.sp,
-            modifier = Modifier.padding(16.dp)
-        )
-        Spacer(modifier = Modifier.height(15.dp))
-        TextButton(
-            onClick = {
-                onDismissRequest()
-            },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Text(
-                text = "OK",
-                fontSize = 16.sp
-            )
-        }
-    }
 
-}
-@Composable
-fun RateDialog(onDismissRequest: () -> Unit, rateList: ExchangeRate, onSelectedCurrency: (String) -> Unit, errorMessage:String) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        if (rateList.rates.isEmpty() && errorMessage.isNotBlank()) {
-            ErrorScreen(onDismissRequest = onDismissRequest, errorMessage = errorMessage)
-            return@Dialog
-        }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.Start)
-                        .clickable { onDismissRequest() }
-                )
-                Text(
-                    text = "Select Currency",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center),
-                    textAlign = TextAlign.Center,
-                )
-
-                LazyColumn {
-                    items(rateList.rates.size){
-                        val item = rateList.rates.entries.elementAt(it)
-                        RateItem(item.key, item.value){ currency ->
-                            onSelectedCurrency(currency)
-                            onDismissRequest()
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RateItem(currency: String, rate: Double, onSelectedItem: (String) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(15.dp)
-            .clickable {
-                onSelectedItem(currency)
-            },
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = currency,
-            color = Color.Black
-        )
-        Text(
-            text = rate.toString(),
-            color = Color.Black
-        )
-    }
-}
-
-@Composable
-fun SubmitDialog(
-    onDismissRequest: () -> Unit,
-    exchangeAlert: String,
-    updateAmountToReceive: () -> Unit,
-    onCurrencyChange: (String) -> Unit
-) {
-    BasicAlertDialog(
-        onDismissRequest = {},
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = AlertDialogDefaults.TonalElevation
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Currency Converted",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp).align(Alignment.CenterHorizontally),
-                    fontSize = 20.sp
-                )
-                Text(
-                    text = exchangeAlert,
-                )
-                Spacer(modifier = Modifier.height(15.dp))
-                TextButton(
-                    onClick = {
-                        onDismissRequest()
-                        updateAmountToReceive()
-                        onCurrencyChange("")
-                    },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text(
-                        text = "Done",
-                        fontSize = 20.sp
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -535,13 +425,38 @@ fun GreetingPreview() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-           // ErrorScreen(onDismissRequest = {}, errorMessage = "")
+            // ErrorScreen(onDismissRequest = {}, errorMessage = "")
             //SubmitDialog(onDismissRequest = {}) { }
 //            AccountBalanceItem(
 //                amount = "100.00",
 //                currency = "EUR"
 //            )
-            RateSwapScreen(screenState = MainScreenState(ExchangeRate(mapOf("USD" to 1.0, "GBP" to 0.85))), sellingCurrency = "EUR", updateSellingCurrency = {}, buyingCurrency = "USD", updateBuyingCurrency = {}, accountBalances = listOf(AccountBalance(currency = "EUR", balance = 100.0), AccountBalance(currency = "USD", balance = 50.0), AccountBalance(currency = "USD", balance = 50.00), AccountBalance(currency = "USD", balance = 80000.0), AccountBalance(currency = "USD", balance = 50.0)), amountValidation = "Amount is too lowjjjjj", amountToSell = "100.00", onAmountChange = {}, onCurrencyChange = {}, updateAmountToReceive = {}, submitExchangeRequest = {})
+            ExchangeScreen(
+                uiState = MainScreenState(
+                    ExchangeRate(
+                        mapOf(
+                            "USD" to 1.0,
+                            "GBP" to 0.85
+                        )
+                    )
+                ),
+                sellingCurrency = "EUR",
+                updateSellingCurrency = {},
+                buyingCurrency = "USD",
+                updateBuyingCurrency = {},
+                accountBalances = listOf(
+                    AccountBalance(currency = "EUR", balance = 100.0),
+                    AccountBalance(currency = "USD", balance = 50.0),
+                    AccountBalance(currency = "USD", balance = 50.00),
+                    AccountBalance(currency = "USD", balance = 80000.0),
+                    AccountBalance(currency = "USD", balance = 50.0)
+                ),
+                amountValidation = "Amount is too lowjjjjj",
+                amount = "100.00",
+                onAmountChange = {},
+                updateSellingAmount = {},
+                updateBuyingAmount = {},
+                submitExchange = {})
         }
     }
 }

@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.rateswap.data.local.datastore.TransactionDataStore
 import com.example.rateswap.domain.model.ExchangeRate
 import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.domain.repository.ExchangeRepository
+import com.example.rateswap.domain.repository.TransactionRepository
 import com.example.rateswap.domain.usecases.CalculateBuyingAccountBalance
 import com.example.rateswap.domain.usecases.CalculateCommissionFee
 import com.example.rateswap.domain.usecases.CalculateExchangeAmount
@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.transformLatest
@@ -31,10 +32,11 @@ import javax.inject.Inject
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class MainScreenViewModel @Inject constructor(
+class MainViewModel @Inject constructor(
     private val exchangeRepository: ExchangeRepository,
-    private val calculateExchangeRate: CalculateExchangeAmount,
     private val accountRepository: AccountRepository,
+    private val transactionRepository: TransactionRepository,
+    private val calculateExchangeRate: CalculateExchangeAmount,
     private val validateExchangeAmount: ValidateExchangeAmount,
     private val calculateBuyingAccountBalance: CalculateBuyingAccountBalance,
     private val calculateSellingAccountBalance: CalculateSellingAccountBalance,
@@ -44,21 +46,17 @@ class MainScreenViewModel @Inject constructor(
     var state by mutableStateOf(MainScreenState())
         private set
 
-    private val sellingAmount = MutableStateFlow("")
-
     var sellingCurrency by mutableStateOf("EUR")
         private set
 
     var buyingCurrency by mutableStateOf("USD")
         private set
 
-    var validationError by mutableStateOf("")
-        private set
+    private val sellingAmount = MutableStateFlow("")
 
-    var transactionCount = MutableStateFlow(0)
-        private set
+    private var transactionCount by mutableStateOf(0)
 
-    fun amountToSell(amount: String) {
+    fun updateAmount(amount: String) {
         sellingAmount.value = amount
     }
 
@@ -71,101 +69,90 @@ class MainScreenViewModel @Inject constructor(
     }
 
     fun clearValidationError() {
-        validationError = " "
-    }
-
-    fun updateAmountToReceive() {
         state = state.copy(
-            amountToReceive = 0.0
+            validationError = ""
         )
     }
 
-
-
-    init {
-        getAccountBalance()
-        getExchangeRate()
-        calculateExchangeRate()
-        getTransactionCount()
+    fun updateBuyingAmount() {
+        state = state.copy(
+            buyingAmount = 0.0
+        )
     }
 
-    private fun getAccountBalance() {
+    init {
+        getAccountBalances()
+        getExchangeRate()
+        getTransactionCount()
+        calculateExchangeRate()
+    }
+
+    private fun getAccountBalances() {
         viewModelScope.launch {
-            accountRepository.getAccountBalance().collect { resource ->
-                println("ZIBAH Account Balance:: $resource")
+            accountRepository.getAccountBalances().collectLatest { resource ->
                 state = state.copy(
                     accountBalances = resource
                 )
-//                when(resource){
-//                    is Resource.Error -> TODO()
-//                    is Resource.Success -> {
-//                        state = state.copy(
-//                            accountBalance = resource.data ?: emptyList()
-//                        )
-//                    }
-//                }
             }
         }
     }
 
-    private fun getTransactionCount() {
+    private fun getExchangeRate() {
         viewModelScope.launch {
-            accountRepository.getTransactionCount().collectLatest{ count ->
-                transactionCount.value = count
+            exchangeRepository.getExchangeRates().collect { resource ->
+                state = when (resource) {
+                    is Resource.Error -> {
+                        state.copy(
+                            exchangeRateError = resource.error.toString(),
+                        )
+                    }
+
+                    is Resource.Success -> {
+                        state.copy(
+                            exchangeRates = resource.data ?: ExchangeRate(emptyMap()),
+                        )
+                    }
+                }
             }
         }
-    }
-
-    private fun incrementTransactionCount() {
-        viewModelScope.launch {
-            accountRepository.setTransactionCount(transactionCount.value + 1)
-        }
-    }
-
-    private fun getCommissionFee(): Double {
-        return commissionFee(
-            amount = sellingAmount.value.toDoubleOrNull() ?: 0.0,
-            transactionCount = transactionCount.value
-        )
-    }
-    private fun getTotalAmountDeducted(): Double {
-        return (sellingAmount.value.toDoubleOrNull() ?: 0.0) + getCommissionFee()
     }
 
     private fun calculateExchangeRate() {
         viewModelScope.launch {
-            sellingAmount.debounce(300)
+            sellingAmount
+                .debounce(300)
                 .distinctUntilChanged()
+                .filter { state.accountBalances.isNotEmpty() }
                 .flatMapLatest { amount ->
                     validateExchangeAmount(
-                        amount = amount,
+                        sellingAmount = amount,
                         sellingCurrency = sellingCurrency,
                         buyingCurrency = buyingCurrency,
-                        accountBalance = state.accountBalances,
-                        transactionCount = transactionCount.value
+                        accountBalances = state.accountBalances,
+                        transactionCount = transactionCount
                     )
                 }
-                .flatMapLatest { validatedAmount ->
-                    if (validatedAmount is Resource.Error) {
-                        return@flatMapLatest flowOf(validatedAmount)
+                .flatMapLatest { validationResult ->
+                    if (validationResult is Resource.Error) {
+                        return@flatMapLatest flowOf(validationResult)
                     }
                     calculateExchangeRate(
-                        validatedAmount.data,
+                        validationResult.data,
                         sellingCurrency,
                         buyingCurrency,
                         state.exchangeRates
                     )
                 }.collect {
-                    when (it) {
+                    state = when (it) {
                         is Resource.Error -> {
-                            validationError = it.mError.message.toString()
-                            println(" ZIBAH::Validation Error: ${it.mError.message}")
+                            state.copy(
+                                validationError = it.error.toString()
+                            )
                         }
 
                         is Resource.Success -> {
-                            println("ZIBAH:: Success: ${it.data}")
-                            state = state.copy(
-                                amountToReceive = it.data ?: 0.0,
+                            state.copy(
+                                buyingAmount = it.data ?: 0.0,
                                 commissionFee = getCommissionFee().toTwoDecimal(),
                                 totalAmountDeducted = getTotalAmountDeducted().toTwoDecimal()
                             )
@@ -175,72 +162,72 @@ class MainScreenViewModel @Inject constructor(
         }
     }
 
-    private fun getExchangeRate() {
+    private fun getTransactionCount() {
         viewModelScope.launch {
-            exchangeRepository.getExchangeRates().collect { resource ->
-                when (resource) {
-                    is Resource.Error -> {
-                        state = state.copy(
-                            exchangeRateError = resource.mError.message.toString(),
-                        )
-                    }
-
-                    is Resource.Success -> {
-                        println("UPPERCASE:: ${resource.data}")
-                        state = state.copy(
-                            exchangeRates = resource.data ?: ExchangeRate(emptyMap()),
-                        )
-                    }
-                }
+            transactionRepository.getTransactionCount().collectLatest{ count ->
+                transactionCount = count
             }
         }
     }
 
-    fun saveAccountBalance() {
+    private fun incrementTransactionCount() {
+        viewModelScope.launch {
+            transactionRepository.setTransactionCount(transactionCount + 1)
+        }
+    }
+
+    private fun getCommissionFee(): Double {
+        return commissionFee(
+            amount = sellingAmount.value.toDoubleOrNull() ?: 0.0,
+            transactionCount = transactionCount
+        )
+    }
+    private fun getTotalAmountDeducted(): Double {
+        return (sellingAmount.value.toDoubleOrNull() ?: 0.0) + getCommissionFee()
+    }
+
+    fun submitExchange() {
         viewModelScope.launch {
             validateExchangeAmount(
-                amount = sellingAmount.value,
+                sellingAmount = sellingAmount.value,
                 sellingCurrency = sellingCurrency,
                 buyingCurrency = buyingCurrency,
-                accountBalance = state.accountBalances,
-                transactionCount = transactionCount.value
-            ).transformLatest { validation ->
-                if (validation is Resource.Error) {
-                    emit(validation)
+                accountBalances = state.accountBalances,
+                transactionCount = transactionCount
+            ).transformLatest { validationResult ->
+                if (validationResult is Resource.Error) {
+                    emit(validationResult)
                     return@transformLatest
                 } else {
-                    val buyingAccount = calculateBuyingAccountBalance(
+                    emit(calculateBuyingAccountBalance(
                         buyingCurrency = buyingCurrency,
-                        receivingAmount = state.amountToReceive,
-                        accountBalance = state.accountBalances
-                    )
-                    emit(buyingAccount)
+                        buyingAmount = state.buyingAmount,
+                        accountBalances = state.accountBalances
+                    ))
                 }
             }.transformLatest { buyingAccount ->
                 if (buyingAccount is Resource.Error) {
                     emit(buyingAccount)
                     return@transformLatest
                 } else {
-                    val sellingAccount = calculateSellingAccountBalance(
+                    emit(calculateSellingAccountBalance(
                         sellingCurrency = sellingCurrency,
-                        amountToSell = sellingAmount.value,
-                        accountBalance = state.accountBalances,
-                        transactionCount = transactionCount.value
-                    )
-                    emit(sellingAccount)
+                        sellingAmount = sellingAmount.value,
+                        accountBalances = state.accountBalances,
+                        transactionCount = transactionCount
+                    ))
                 }
 
             }.collect { resource ->
                 when (resource) {
-
                     is Resource.Error -> {
-                        validationError = resource.mError.message.toString()
-                        println("ZIBAH:: ERROR: ${resource.mError.message.toString()}")
+                        state = state.copy(
+                            validationError = resource.error.toString()
+                        )
                     }
 
                     is Resource.Success -> {
                         incrementTransactionCount()
-                        println("ZIBAH:: Success: Account Added Successfully")
                     }
                 }
             }

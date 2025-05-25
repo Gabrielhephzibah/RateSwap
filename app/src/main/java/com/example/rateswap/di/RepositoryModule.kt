@@ -2,8 +2,10 @@ package com.example.rateswap.di
 
 import com.example.rateswap.data.repository.AccountRepositoryImpl
 import com.example.rateswap.data.repository.ExchangeRepositoryImpl
+import com.example.rateswap.data.repository.TransactionRepositoryImpl
 import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.domain.repository.ExchangeRepository
+import com.example.rateswap.domain.repository.TransactionRepository
 import com.example.rateswap.utils.connectivity.ConnectivityObserver
 import com.example.rateswap.utils.connectivity.ConnectivityObserverImpl
 import dagger.Binds
@@ -27,5 +29,5 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun provideConnectivityObserver(connectivityObserver: ConnectivityObserverImpl): ConnectivityObserver
+    abstract fun provideTransactionRepository(transactionRepository: TransactionRepositoryImpl): TransactionRepository
 }

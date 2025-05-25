@@ -14,10 +14,9 @@ import javax.inject.Singleton
 @Singleton
 class AccountRepositoryImpl @Inject constructor(
     private val accountDao: AccountDao,
-    private val transactionDataStore: TransactionDataStore
 ): AccountRepository {
 
-    override fun getAccountBalance(): Flow<List<AccountBalance>> {
+    override fun getAccountBalances(): Flow<List<AccountBalance>> {
         return accountDao.getAllAccounts().map { account ->
             account.map {
                 it.toAccountBalance() }
@@ -28,21 +27,7 @@ class AccountRepositoryImpl @Inject constructor(
         accountDao.insertAccount(accountBalance.toAccountEntity())
     }
 
-//    override suspend fun upsertAccountBalance(accountBalance: AccountBalance) {
-//        accountDao.upsertAccount(accountBalance.toAccountEntity())
-//    }
-
     override suspend fun updateAccountBalance(accountBalance: AccountBalance) {
         accountDao.updateAccount(accountBalance.toAccountEntity())
     }
-
-    override fun getTransactionCount(): Flow<Int> {
-       return transactionDataStore.getTransactionCount()
-    }
-
-    override suspend fun setTransactionCount(count: Int) {
-        transactionDataStore.setTransactionCount(count)
-    }
-
-
 }

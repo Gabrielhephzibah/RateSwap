@@ -1,5 +1,5 @@
 package com.example.rateswap.utils
 
-enum class SelectionSource  {
+enum class RateDialogSource  {
     SELL, RECEIVE
 }

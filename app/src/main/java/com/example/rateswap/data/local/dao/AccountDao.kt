@@ -22,7 +22,4 @@ interface AccountDao {
 
     @Delete
     suspend fun deleteAccount(account: AccountEntity)
-
-    @Query("SELECT * FROM AccountEntity WHERE currency = :currency")
-    fun getAccountBalanceByCurrency(currency: String): Flow<AccountEntity?>
 }

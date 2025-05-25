@@ -1,6 +1,7 @@
 package com.example.rateswap.domain.usecases
 
 import com.example.rateswap.domain.model.AccountBalance
+import com.example.rateswap.utils.ErrorMessage
 import com.example.rateswap.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -13,35 +14,33 @@ class ValidateExchangeAmount @Inject constructor(
 ) {
 
     operator fun invoke(
-        amount: String,
+        sellingAmount: String,
         sellingCurrency: String,
         buyingCurrency: String,
-        accountBalance: List<AccountBalance>,
+        accountBalances: List<AccountBalance>,
         transactionCount :Int
     ): Flow<Resource<String>> =
         flow {
-            val sellingCurrencyBalance = accountBalance.find { it.currency == sellingCurrency }
-            println("ZIBAH:: sellingCurrencyBalance: $sellingCurrencyBalance")
-            println("ZIBAH:: sellingCurrency: $sellingCurrency")
-            val amountToDouble = amount.toDoubleOrNull() ?: 0.0
+            val sellingCurrencyBalance = accountBalances.find { it.currency == sellingCurrency }
+            val amountToDouble = sellingAmount.toDoubleOrNull() ?: 0.0
             when {
                 sellingCurrencyBalance == null -> {
-                    emit(Resource.Error(Throwable("You do not have this currency in your account")))
+                    emit(Resource.Error("${ErrorMessage.NO_ACCOUNT_FOUND} $sellingCurrency."))
                 }
-                amount == "0" -> {
-                    emit(Resource.Error(Throwable("Enter an amount greater than 0")))
+                sellingAmount == "0" -> {
+                    emit(Resource.Error(ErrorMessage.AMOUNT_GRATER_THAN_ZERO))
                 }
 
                 sellingCurrencyBalance.balance < (amountToDouble + commissionFee(amountToDouble, transactionCount)) -> {
-                    emit(Resource.Error(Throwable("You do not have enough balance to exchange this amount")))
+                    emit(Resource.Error(ErrorMessage.NOT_ENOUGH_BALANCE))
                 }
 
                 sellingCurrency == buyingCurrency -> {
-                    emit(Resource.Error(Throwable("You cannot exchange the same currency")))
+                    emit(Resource.Error(ErrorMessage.SAME_CURRENCY))
                 }
 
                 else -> {
-                    emit(Resource.Success(amount))
+                    emit(Resource.Success(sellingAmount))
                 }
             }
         }

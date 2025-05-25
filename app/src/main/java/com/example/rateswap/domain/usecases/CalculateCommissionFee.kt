@@ -4,8 +4,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CalculateCommissionFee @Inject constructor(
-) {
+class CalculateCommissionFee @Inject constructor() {
 
    operator fun invoke(amount: Double, transactionCount: Int): Double {
         return if (transactionCount > FREE_TRANSACTIONS_LIMIT) {

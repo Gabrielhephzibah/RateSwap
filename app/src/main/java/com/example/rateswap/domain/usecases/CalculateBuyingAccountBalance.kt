@@ -13,20 +13,19 @@ class CalculateBuyingAccountBalance @Inject constructor(
 
     suspend operator fun invoke(
         buyingCurrency: String,
-        receivingAmount: Double,
-        accountBalance: List<AccountBalance>,
+        buyingAmount: Double,
+        accountBalances: List<AccountBalance>,
     ): Resource<Unit> {
-        val existingAccount = accountBalance.firstOrNull { it.currency == buyingCurrency }
+        val existingAccount = accountBalances.firstOrNull { it.currency == buyingCurrency }
 
         existingAccount?.let { account ->
-            val totalAmount = account.balance + receivingAmount
+            val totalAmount = account.balance + buyingAmount
             val updateAccount = existingAccount.copy(balance = totalAmount)
-            println("ZIBAH:: AccountExist :: $updateAccount")
             accountRepository.updateAccountBalance(updateAccount)
         } ?: accountRepository.insertAccountBalance(
                 AccountBalance(
                     currency = buyingCurrency,
-                    balance = receivingAmount
+                    balance = buyingAmount
                 )
             )
       return Resource.Success(Unit)
