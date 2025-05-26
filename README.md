@@ -38,7 +38,7 @@ Contains test classes that validate the logic in the Data Layer, Domain Layer an
 
 ### Libraries
 
--**Kotlin:**
+- **Kotlin:**
   The programming language used for developing the app
 
 - **Room:**  
