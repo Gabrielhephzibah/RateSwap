@@ -39,13 +39,13 @@ Contains test classes that validate the logic in the Data Layer, Domain Layer an
 ## Libraries
 
 - **Kotlin:**  
-  The programming language used for the application.
+  The primary programming language used for building the application
   
 - **Jetpack Compose:**  
-  Uses Jetpack Compose for UI.
+  Uses Jetpack Compose for creating the UI and screens.
     
 - **Room:**  
-  Uses the Room library to save multiple account balances..
+  Uses the Room library to store and manage multiple account balances..
 
 - **Flows and Coroutines:**  
   Uses Kotlin Coroutines and Flows for asynchronous data handling and to achieve concurrency in a lifecycle-aware manner.
