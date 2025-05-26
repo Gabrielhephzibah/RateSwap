@@ -37,11 +37,14 @@ Contains test classes that validate the logic in the Data Layer, Domain Layer an
 
 ## Libraries
 
+-**Kotlin:**
+  The programming language used for developing the app
+
 - **Room:**  
   Uses Room library to save multiple account balances.
 
 - **DataStore:**
-  Uses to save key-values pair data, in this case transaction count
+  Uses datastore preferences to save key-value pair data, in this case, the transaction count
 
 - **Flows and Coroutines:**  
   Uses Kotlin Coroutines and Flows for asynchronous data handling and to achieve concurrency in a lifecycle-aware manner.
@@ -60,3 +63,5 @@ Contains test classes that validate the logic in the Data Layer, Domain Layer an
 
 - **Truth:**  
   Uses the Truth library for test assertions.
+
+## Libraries
