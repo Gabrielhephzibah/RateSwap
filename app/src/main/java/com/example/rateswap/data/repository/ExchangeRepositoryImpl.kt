@@ -30,19 +30,20 @@ class ExchangeRepositoryImpl @Inject constructor(
             while(currentCoroutineContext().isActive) {
                 if (!connectivityObserver.isConnected) {
                     emit(Resource.Error(ErrorMessage.NO_INTERNET_CONNECTION))
-                    delay(5000)
+                    delay(DELAY_TIME)
                     continue
                 }
-
                 val response = exchangeApi.getExchangeRates()
-                println("ZIBAH response: $response")
                 emit(Resource.Success(response.toExchangeRate()))
-                delay(5000)
+                delay(DELAY_TIME)
 
             }
         }.flowOn(ioDispatcher)
             .catch {
             emit(Resource.Error(ErrorMessage.API_ERROR))
-            println("ZIBAH Error: ${it.message}")
         }
+
+    companion object{
+       const val DELAY_TIME = 5000L
+    }
 }

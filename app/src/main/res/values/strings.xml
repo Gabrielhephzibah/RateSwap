@@ -11,4 +11,5 @@
     <string name="amount_to_be_deducted">Amount to be deducted:</string>
     <string name="submit">Submit</string>
     <string name="exchange_message">You have successfully converted %1$s %2$s to %3$s %4$s. Commission Fee: %5$s %2$s.</string>
+    <string name="search_currency">Search currency</string>
 </resources>
