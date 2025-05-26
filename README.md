@@ -2,65 +2,65 @@
 
 RateSwap is an Android application for exchanging currencies in a multi-currency account. The app is built using the MVVM Clean Architecture pattern
 
-### App Structure
+## App Structure
 
-#### Data Layer
+### Data Layer
 Consists of the following packages:
-- ***Local:***
+- **Local:**
    - Contains the Data Access Objects (DAO), Entity classes, and Room Database.
-- ***Mapper:***
+- **Mapper:**
   - Contains functions that map data between different data classes.
-- ***Remote:***  
+- **Remote:** 
   - Contains API endpoints, and  API DTOs.
-- ***Repository:***  
+- **Repository:** 
   - Implements the repository interface and contains the repository implementations.
     
-#### DI Layer
+### DI Layer
   - Handles dependency injection (using Hilt) and contains dependency modules.
 
-#### Domain Layer
+### Domain Layer
 Serves as an interface between the Data Layer and the UI Layer. It consists of:
-- ***Model:***  
+- **Model:** 
   - Contains model or data classes used in the UI layer.
-- ***Repository:***  
+- **Repository:**
    - Contains methods that are implemented by the Repository in the Data Layer.
-- ***UseCases:***
+- **UseCases:**
     - Contains the application business requirement logic implementation
 
-#### Presentation Layer
+### Presentation Layer
 Handles everything related to the user interface:
 - Contains screens, ViewModels, and other UI-related tasks.
   
 
-#### Test
+### Test
 Contains test classes that validate the logic in the Data Layer, Domain Layer and Presentation Layer.
 - Uses JUnit, MockK, and Truth for unit testing.
 
-### Libraries
+## Libraries
 
-- ****Kotlin:****
+- **Kotlin:**
   The programming language used for developing the app
 
-- ***Room:***  
+- **Room:**  
   Uses Room library to save multiple account balances.
 
-- ***DataStore:***
+- **DataStore:**
   Uses datastore preferences to save key-value pair data, in this case, the transaction count
 
-- ***Flows and Coroutines:***  
+- **Flows and Coroutines:** 
   Uses Kotlin Coroutines and Flows for asynchronous data handling and to achieve concurrency in a lifecycle-aware manner.
 
-- ***Dependency Injection:***  
+- **Dependency Injection:** 
   Uses the Hilt library for dependency injection, providing and injecting dependencies where needed.
 
-- ***Retrofit:***  
+- **Retrofit:** 
   Uses Retrofit as the HTTP client to handle network requests.
 
-- ***Mockk:*** 
+- **Mockk:** 
   Uses the Mockk library in tests to mock and stub interfaces for testing business logic.
 
-- ***JUnit:*** 
+- **JUnit:** 
   Uses JUnit as the testing framework to run unit tests.
 
-- ***Truth:***  
+- **Truth:**  
   Uses the Truth library for test assertions.
