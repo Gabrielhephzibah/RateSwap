@@ -4,7 +4,7 @@ RateSwap is an Android application for exchanging currencies in a multi-currency
 
 ## App Structure
 
-### Data Layer
+#### Data Layer
 Consists of the following packages:
 - **Local:**  
    - Contains the Data Access Objects (DAO), Entity classes, and Room Database.
@@ -14,7 +14,8 @@ Consists of the following packages:
   - Contains API endpoints, and  API DTOs.
 - **Repository:**  
   - Implements the repository interface and contains the repository implementations.
-- **DI Layer:**  
+    
+## DI Layer
   - Handles dependency injection (using Hilt) and contains dependency modules.
 
 ### Domain Layer
