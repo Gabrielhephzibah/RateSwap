@@ -2,7 +2,7 @@
 
 RateSwap is an Android application for exchanging currencies in a multi-currency account. The app is built using the MVVM Clean Architecture pattern
 
-## App Structure
+### App Structure
 
 #### Data Layer
 Consists of the following packages:
@@ -15,10 +15,10 @@ Consists of the following packages:
 - **Repository:**  
   - Implements the repository interface and contains the repository implementations.
     
-## DI Layer
+#### DI Layer
   - Handles dependency injection (using Hilt) and contains dependency modules.
 
-### Domain Layer
+#### Domain Layer
 Serves as an interface between the Data Layer and the UI Layer. It consists of:
 - **Model:**  
   - Contains model or data classes used in the UI layer.
@@ -27,16 +27,16 @@ Serves as an interface between the Data Layer and the UI Layer. It consists of:
 - **UseCases:**
     - Contains the application business requirement logic implementation
 
-### Presentation Layer
+#### Presentation Layer
 Handles everything related to the user interface:
 - Contains screens, ViewModels, and other UI-related tasks.
   
 
-### Test
+#### Test
 Contains test classes that validate the logic in the Data Layer, Domain Layer and Presentation Layer.
 - Uses JUnit, MockK, and Truth for unit testing.
 
-## Libraries
+### Libraries
 
 -**Kotlin:**
   The programming language used for developing the app
