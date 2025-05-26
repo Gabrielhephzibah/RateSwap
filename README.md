@@ -6,9 +6,9 @@ RateSwap is an Android application for exchanging currencies in a multi-currency
 
 #### Data Layer
 Consists of the following packages:
-- **Local:**  
+- ***Local:***
    - Contains the Data Access Objects (DAO), Entity classes, and Room Database.
-- **Mapper:**  
+- ***Mapper:***
   - Contains functions that map data between different data classes.
 - **Remote:**  
   - Contains API endpoints, and  API DTOs.
