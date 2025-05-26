@@ -41,13 +41,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.rateswap.R
 import com.example.rateswap.domain.model.AccountBalance
-import com.example.rateswap.domain.model.ExchangeRate
 import com.example.rateswap.presentation.dialog.ExchangeMessageDialog
 import com.example.rateswap.presentation.dialog.ExchangeRateDialog
 import com.example.rateswap.ui.theme.RateSwapTheme
@@ -411,46 +409,4 @@ fun AccountBalanceItem(
         fontSize = 16.sp,
         fontWeight = FontWeight(600),
     )
-}
-
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RateSwapTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-
-            ExchangeScreen(
-                uiState = MainScreenState(
-                    ExchangeRate(
-                        mapOf(
-                            "USD" to 1.0,
-                            "GBP" to 0.85
-                        )
-                    )
-                ),
-                sellingCurrency = "EUR",
-                updateSellingCurrency = {},
-                buyingCurrency = "USD",
-                updateBuyingCurrency = {},
-                accountBalances = listOf(
-                    AccountBalance(currency = "EUR", balance = 100.0),
-                    AccountBalance(currency = "USD", balance = 50.0),
-                    AccountBalance(currency = "USD", balance = 50.00),
-                    AccountBalance(currency = "USD", balance = 80000.0),
-                    AccountBalance(currency = "USD", balance = 50.0)
-                ),
-                amountValidation = "Amount is too lowjjjjj",
-                amount = "100.00",
-                onAmountChange = {},
-                updateSellingAmount = {},
-                updateBuyingAmount = {},
-                submitExchange = {})
-        }
-    }
 }
