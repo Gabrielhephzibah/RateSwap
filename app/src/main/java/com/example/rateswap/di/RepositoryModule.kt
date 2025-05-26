@@ -6,8 +6,6 @@ import com.example.rateswap.data.repository.TransactionRepositoryImpl
 import com.example.rateswap.domain.repository.AccountRepository
 import com.example.rateswap.domain.repository.ExchangeRepository
 import com.example.rateswap.domain.repository.TransactionRepository
-import com.example.rateswap.utils.connectivity.ConnectivityObserver
-import com.example.rateswap.utils.connectivity.ConnectivityObserverImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

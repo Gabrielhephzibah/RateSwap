@@ -110,5 +110,4 @@ class CalculateSellingAccountBalanceTest {
         assertThat(result).isEqualTo(Resource.Success(Unit))
     }
 
-
 }

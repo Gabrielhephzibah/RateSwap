@@ -8,7 +8,6 @@ import com.example.rateswap.utils.ErrorMessage
 import com.example.rateswap.utils.Resource
 import com.example.rateswap.utils.connectivity.ConnectivityObserver
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

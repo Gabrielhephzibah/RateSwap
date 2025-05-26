@@ -33,5 +33,4 @@ class CalculateBuyingAccountBalance @Inject constructor(
             )
       return Resource.Success(Unit)
     }
-
 }

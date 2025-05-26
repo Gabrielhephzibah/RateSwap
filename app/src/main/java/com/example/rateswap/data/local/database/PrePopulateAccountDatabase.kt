@@ -6,7 +6,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.rateswap.data.local.dao.AccountDao
 import com.example.rateswap.data.local.entity.AccountEntity
 import dagger.Lazy
-import dagger.internal.Provider
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

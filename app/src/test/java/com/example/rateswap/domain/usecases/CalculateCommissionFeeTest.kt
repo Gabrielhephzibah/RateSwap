@@ -39,6 +39,4 @@ class CalculateCommissionFeeTest {
         val result = calculateCommissionFee(amount, transactionCount)
         assertThat(result).isEqualTo(TestData.COMMISSION_PERCENTAGE * amount)
     }
-
-
 }

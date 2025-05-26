@@ -1,7 +1,6 @@
 package com.example.rateswap.data.repository
 
 import com.example.rateswap.data.local.dao.AccountDao
-import com.example.rateswap.data.local.datastore.TransactionDataStore
 import com.example.rateswap.data.mappers.toAccountBalance
 import com.example.rateswap.data.mappers.toAccountEntity
 import com.example.rateswap.domain.model.AccountBalance

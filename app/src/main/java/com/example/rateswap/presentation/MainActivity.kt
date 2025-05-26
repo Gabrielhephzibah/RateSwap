@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.rateswap.presentation
 
 import android.os.Bundle
@@ -28,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,14 +48,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.rateswap.R
 import com.example.rateswap.domain.model.AccountBalance
 import com.example.rateswap.domain.model.ExchangeRate
-
 import com.example.rateswap.presentation.dialog.ExchangeMessageDialog
 import com.example.rateswap.presentation.dialog.ExchangeRateDialog
-
 import com.example.rateswap.ui.theme.RateSwapTheme
 import com.example.rateswap.utils.RateDialogSource
 import dagger.hilt.android.AndroidEntryPoint
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -105,6 +99,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExchangeScreen(
     uiState: MainScreenState,
