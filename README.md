@@ -38,28 +38,28 @@ Contains test classes that validate the logic in the Data Layer, Domain Layer an
 
 ## Libraries
 
-- **Kotlin:**
-  The programming language used for developing the app
-
+- **Kotlin:**  
+  The programming language used for the application.
+  
+- **Jetpack Compose:**  
+  Uses Jetpack Compose for UI.
+    
 - **Room:**  
-  Uses Room library to save multiple account balances.
+  Uses the Room library to save multiple account balances..
 
-- **DataStore:**
-  Uses datastore preferences to save key-value pair data, in this case, the transaction count
-
-- **Flows and Coroutines:** 
+- **Flows and Coroutines:**  
   Uses Kotlin Coroutines and Flows for asynchronous data handling and to achieve concurrency in a lifecycle-aware manner.
 
-- **Dependency Injection:** 
+- **Dependency Injection:**  
   Uses the Hilt library for dependency injection, providing and injecting dependencies where needed.
 
-- **Retrofit:** 
+- **Retrofit:**  
   Uses Retrofit as the HTTP client to handle network requests.
 
-- **Mockk:** 
+- **Mockk:**  
   Uses the Mockk library in tests to mock and stub interfaces for testing business logic.
 
-- **JUnit:** 
+- **JUnit:**  
   Uses JUnit as the testing framework to run unit tests.
 
 - **Truth:**  
