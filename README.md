@@ -63,5 +63,3 @@ Contains test classes that validate the logic in the Data Layer, Domain Layer an
 
 - **Truth:**  
   Uses the Truth library for test assertions.
-
-## Libraries
