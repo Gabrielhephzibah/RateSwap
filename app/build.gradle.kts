@@ -81,6 +81,11 @@ dependencies {
     implementation(libs.androidx.google.fonts)
 
     testImplementation(libs.junit)
+    testImplementation(libs.cashapp.turbine)
+    testImplementation(libs.google.truth)
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutine.test)
+    testImplementation(libs.androidx.test.arch.core)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

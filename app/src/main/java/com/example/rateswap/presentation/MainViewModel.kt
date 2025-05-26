@@ -152,7 +152,7 @@ class MainViewModel @Inject constructor(
 
                         is Resource.Success -> {
                             state.copy(
-                                buyingAmount = it.data ?: 0.0,
+                                buyingAmount = it.data?: 0.0,
                                 commissionFee = getCommissionFee().toTwoDecimal(),
                                 totalAmountDeducted = getTotalAmountDeducted().toTwoDecimal()
                             )

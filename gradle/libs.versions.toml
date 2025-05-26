@@ -16,6 +16,11 @@ hiltNavigation = "1.2.0"
 room = "2.6.1"
 preferenceDatastore = "1.1.7"
 googleFonts = "1.7.7"
+turbine = "1.1.0"
+truth = "1.1.4"
+mockk = "1.13.9"
+couroutineTest = "1.5.2"
+androidxTest = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +48,11 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-compiler = {group = "androidx.room", name = "room-compiler", version.ref = "room"}
 androidx-preference-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "preferenceDatastore"}
 androidx-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "googleFonts" }
+cashapp-turbine = {group = "app.cash.turbine", name = "turbine", version.ref = "turbine"}
+google-truth = {group = "com.google.truth", name = "truth", version.ref = "truth"}
+mockk = {group = "io.mockk", name = "mockk", version.ref = "mockk"}
+coroutine-test = {group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "couroutineTest"}
+androidx-test-arch-core = {group = "androidx.arch.core", name = "core-testing", version.ref = "androidxTest"}
 
 
 [plugins]

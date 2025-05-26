@@ -35,6 +35,7 @@ class ExchangeRepositoryImpl @Inject constructor(
                 }
 
                 val response = exchangeApi.getExchangeRates()
+                println("ZIBAH response: $response")
                 emit(Resource.Success(response.toExchangeRate()))
                 delay(5000)
 
@@ -42,5 +43,6 @@ class ExchangeRepositoryImpl @Inject constructor(
         }.flowOn(ioDispatcher)
             .catch {
             emit(Resource.Error(ErrorMessage.API_ERROR))
+            println("ZIBAH Error: ${it.message}")
         }
 }
