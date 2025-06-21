@@ -1,6 +1,6 @@
 # RateSwap
 
-RateSwap is an Android application for exchanging currencies in a multi-currency account. The app is built using the MVVM Clean Architecture pattern
+RateSwap is an Android application for exchanging currencies in a multi-currency account. The app is built using the MVVM + Clean Architecture pattern
 
 ## App Structure
 
